@@ -9,7 +9,7 @@ config.autoAddCss = false;
 
 import { Providers } from "./lib/providers";
 
-import { Header } from "./components/layout/header/page";
+import { Header } from "./components/layout/header/header";
 
 const NotoSansJapanese = Noto_Sans_JP({
   variable: "--font-geist-sans",
