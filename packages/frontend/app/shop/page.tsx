@@ -1,13 +1,21 @@
+"use client";
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faXTwitter,
   faInstagram,
   faYoutube,
 } from "@fortawesome/free-brands-svg-icons";
+import { useState } from "react";
+
+import { Modal } from "../components/ui/modal";
 
 export default function Shop() {
+  const [modalOpen, setModalOpen] = useState(false);
+
   return (
     <div className="h-full w-[90%] mx-[5%]">
+      {modalOpen && <Modal setModalOpen={setModalOpen} />}
       <div className="flex">
         <div className="flex justify-center items-center aspect-square w-[50%]">
           <div className="aspect-square bg-black w-[60%]">image</div>
@@ -32,7 +40,12 @@ export default function Shop() {
       </div>
 
       <div className="fixed grid grid-cols-5 bottom-0 w-[72vw] sm:min-h-52 2xl:min-h-72  px-[9vw] pt-4 pb-10 shadow-inner rounded-t-lg bg-[#F4F2F3]">
-        <div className="flex flex-col justify-center items-center">
+        <div
+          className="flex flex-col justify-center items-center"
+          onClick={() => {
+            setModalOpen(true);
+          }}
+        >
           <h1 className="font-bold my-2">FNT Name</h1>
           <div className="sm:w-20 sm:h-20 2xl:w-24 2xl:h-24 rounded-full bg-white duration-300 shadow-[0_4px_4px_rgba(0,0,0,0.25)] hover:shadow-[0_2px_2px_rgba(0,0,0,0.25)]"></div>
         </div>
