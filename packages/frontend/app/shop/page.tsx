@@ -23,7 +23,7 @@ export default function Shop() {
         <div className="flex flex-col justify-center items-center w-[60%] text-center">
           <div className="flex flex-col justify-center items-center w-full">
             <h1 className="font-bold text-3xl">Shop Name</h1>
-            <p className="w-[80%] min-h-20 mt-4 text-lmd">Shop Description</p>
+            <p className="w-[80%] min-h-24 mt-4 text-lmd">Shop Description</p>
           </div>
           <ul className="flex gap-8 my-4">
             <li className="flex justify-center items-center w-12 h-12 rounded-2xl duration-200 shadow-[0_4px_4px_rgba(0,0,0,0.25)] hover:shadow-[0_2px_2px_rgba(0,0,0,0.25)]">
