@@ -11,10 +11,7 @@ export const Header = () => {
       <div className="flex gap-10 items-center">
         <ul className="flex gap-4">
           <li className="hover:underline cursor-pointer">
-            <Link href={"/shop"}>Shop</Link>
-          </li>
-          <li className="hover:underline cursor-pointer">
-            <Link href={"/about"}>About</Link>
+            <Link href={"/make-shop"}>Your Shop</Link>
           </li>
         </ul>
         <User />
