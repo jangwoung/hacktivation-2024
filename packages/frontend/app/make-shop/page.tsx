@@ -6,45 +6,64 @@ import {
   faInstagram,
   faYoutube,
 } from "@fortawesome/free-brands-svg-icons";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAccount } from "wagmi";
 import { createClient } from "@/utils/supabase/client";
 
 import { Modal } from "../components/ui/modal";
+import { ViewNFT } from "./components/view-nft";
 import { ImageSelector } from "../components/ui/image-selector";
 
 export default function MakeShop() {
   const supabase = createClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [selectSNS, setSelectSNS] = useState("X");
-  const [isLoading, setIsLoading] = useState(false);
 
   const { address } = useAccount();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [shopName, setShopName] = useState("");
-  const [shopDescription, setShopDescription] = useState("");
-  const [xAddress, setXAddress] = useState("");
-  const [instagramAddress, setInstagramAddress] = useState("");
-  const [youtubeAddress, setYoutubeAddress] = useState("");
+  const [shopName, setShopName] = useState<string>("");
+  const [shopDescription, setShopDescription] = useState<string>("");
+  const [xAddress, setXAddress] = useState<string>("");
+  const [instagramAddress, setInstagramAddress] = useState<string>("");
+  const [youtubeAddress, setYoutubeAddress] = useState<string>("");
+
+  useEffect(() => {
+    const fetchShops = async () => {
+      const { data, error } = await supabase.from("shops").select("*");
+      if (error) {
+        console.error("Error fetching shops:", error);
+      } else {
+        if (address) {
+          const matchingShop = data.find(
+            (shop) => shop.wallet_address === address
+          );
+          if (matchingShop) {
+            setSelectedImage(matchingShop.image_url);
+            setShopName(matchingShop.name);
+            setShopDescription(matchingShop.description);
+            setXAddress(matchingShop.social_media.x || "");
+            setInstagramAddress(matchingShop.social_media.instagram || "");
+            setYoutubeAddress(matchingShop.social_media.youtube || "");
+          }
+        }
+      }
+    };
+    fetchShops();
+  }, []);
 
   const handleSubmit = async () => {
     if (!address) return;
 
-    setIsLoading(true);
     try {
-      // let imageUrl = selectedImage;
-      // if (selectedImage && selectedImage.startsWith("data:")) {
-      //   const { data: imageData, error: imageError } = await supabase.storage
-      //     .from("shop-images")
-      //     .upload(`${address}/${Date.now()}.jpg`, selectedImage);
+      const { data: existingShops, error: fetchError } = await supabase
+        .from("shops")
+        .select("*")
+        .eq("wallet_address", address);
 
-      //   if (imageError) throw imageError;
-      //   imageUrl = imageData.path;
-      // }
+      if (fetchError) throw fetchError;
 
-      const { error } = await supabase.from("shops").insert({
+      const shopData = {
         wallet_address: address,
-        // image_url: imageUrl,
         name: shopName,
         description: shopDescription,
         social_media: {
@@ -52,16 +71,34 @@ export default function MakeShop() {
           instagram: instagramAddress,
           youtube: youtubeAddress,
         },
-        created_at: new Date().toISOString(),
-      });
+      };
+
+      let error;
+
+      if (existingShops && existingShops.length > 0) {
+        const { error: updateError } = await supabase
+          .from("shops")
+          .update(shopData)
+          .eq("wallet_address", address);
+        error = updateError;
+      } else {
+        const { error: insertError } = await supabase.from("shops").insert({
+          ...shopData,
+          created_at: new Date().toISOString(),
+        });
+        error = insertError;
+      }
 
       if (error) throw error;
-      alert("ショップが正常に登録されました！");
+
+      alert(
+        existingShops && existingShops.length > 0
+          ? "ショップ情報が更新されました！"
+          : "ショップが正常に登録されました！"
+      );
     } catch (error) {
       console.error("Error saving shop:", error);
-      alert("ショップの登録中にエラーが発生しました。" + error);
-    } finally {
-      setIsLoading(false);
+      alert("ショップの保存中にエラーが発生しました。" + error);
     }
   };
 
@@ -71,7 +108,7 @@ export default function MakeShop() {
         return (
           <input
             type="text"
-            placeholder="https://x.com/"
+            placeholder="https://x.com/…"
             value={xAddress}
             className="w-4/5 mt-2 px-2 py-1 rounded-md shadow-inner bg-slate-100 text-sm focus:outline-gray-300"
             onChange={(e) => setXAddress(e.target.value)}
@@ -81,7 +118,7 @@ export default function MakeShop() {
         return (
           <input
             type="text"
-            placeholder="https://www.instagram.com/"
+            placeholder="https://www.instagram.com/…"
             value={instagramAddress}
             className="w-4/5 mt-2 px-2 py-1 rounded-md shadow-inner bg-slate-100 text-sm focus:outline-gray-300"
             onChange={(e) => setInstagramAddress(e.target.value)}
@@ -91,7 +128,7 @@ export default function MakeShop() {
         return (
           <input
             type="text"
-            placeholder="https://www.youtube.com/"
+            placeholder="https://www.youtube.com/…"
             value={youtubeAddress}
             className="w-4/5 mt-2 px-2 py-1 rounded-md shadow-inner bg-slate-100 text-sm focus:outline-gray-300"
             onChange={(e) => setYoutubeAddress(e.target.value)}
@@ -104,7 +141,11 @@ export default function MakeShop() {
 
   return (
     <div className="h-full w-[90%] mx-[5%]">
-      {modalOpen && <Modal setModalOpen={setModalOpen} />}
+      {modalOpen && (
+        <Modal setModalOpen={setModalOpen}>
+          <ViewNFT />
+        </Modal>
+      )}
       <div className="flex">
         <div className="flex justify-center items-center aspect-square w-[50%]">
           <ImageSelector
@@ -157,16 +198,20 @@ export default function MakeShop() {
           {snsComponent}
         </div>
       </div>
-      <div className="w-full mt-1 flex flex-col justify-center items-center">
+      <div className="w-full flex flex-col items-center justify-center">
+        <button
+          type="button"
+          onClick={() => setModalOpen(true)}
+          className={`w-60 py-2 px-8 mb-10 rounded-md border-2 border-gray-400 font-bold duration-200 hover:border-[#3090c8]`}
+        >
+          NFTの編集
+        </button>
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={isLoading || !address}
-          className={`py-2 px-8 rounded-md ${
-            address && !isLoading ? "bg-[#3090c8]" : "bg-gray-500"
-          } text-white font-bold duration-200 shadow-[0_4px_4px_rgba(0,0,0,0.25)] hover:shadow-[0_2px_2px_rgba(0,0,0,0.25)]`}
+          className={`w-40 py-2 px-8 rounded-md bg-[#3090c8] text-white font-bold duration-200 shadow-[0_4px_4px_rgba(0,0,0,0.25)] hover:shadow-[0_2px_2px_rgba(0,0,0,0.25)]`}
         >
-          {isLoading ? "登録中..." : "登録"}
+          登録
         </button>
       </div>
     </div>
