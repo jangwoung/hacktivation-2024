@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Noto_Sans_JP } from "next/font/google";
 import "@/app/styles/globals.css";
 import "@rainbow-me/rainbowkit/styles.css";
 
+import { config } from "@fortawesome/fontawesome-svg-core";
+import "@fortawesome/fontawesome-svg-core/styles.css";
+config.autoAddCss = false;
+
 import { Providers } from "./lib/providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+import { Header } from "./components/layout/header/header";
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const NotoSansJapanese = Noto_Sans_JP({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
@@ -27,10 +28,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <Providers>{children}</Providers>
+      <body className={`${NotoSansJapanese.variable} antialiased bg-[#F0F0F0]`}>
+        <Providers>
+          <Header />
+          <div className="w-[84vw] h-[calc(100svh-100px)] mt-[100px] mx-[8vw] bg-white shadow-xl">
+            {children}
+          </div>
+        </Providers>
       </body>
     </html>
   );
